@@ -1,4 +1,3 @@
-# Yasha's comment
 import os
 import pygame
 
