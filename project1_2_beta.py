@@ -171,7 +171,9 @@ class Blocks(pygame.sprite.Sprite):
 
 
 # Инициализация врагов, героя и блоков, уровень 1
-Gero = Mario(80, 0)
+Gero = Mario(80, 300)
+for i in range(10):
+    Blocks(i * 40, 400)
 for i in range(10):
     Blocks(i * 40, 200)
 
