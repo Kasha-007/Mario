@@ -1,3 +1,4 @@
+# Vetka Yashy 2
 import os
 import pygame
 
