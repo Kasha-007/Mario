@@ -1,4 +1,3 @@
-# Vetka Yashy 3
 import os
 import pygame
 
