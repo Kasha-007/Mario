@@ -1,4 +1,4 @@
-# Ага 3
+# Ага 4
 import os
 import pygame
 
