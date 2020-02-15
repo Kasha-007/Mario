@@ -18,7 +18,6 @@ def load_image(name, colorkey=None):
 pygame.init()
 # размеры окна:
 mashtab = 1
-gravity = 5
 size = width, height = 640 * mashtab, 480 * mashtab
 # screen — холст, на котором нужно рисовать:
 screen = pygame.display.set_mode(size)
@@ -52,18 +51,28 @@ class Mario(pygame.sprite.Sprite):
     # Обновление героя
     def update(self, *args):
         if pygame.sprite.spritecollideany(self, Blocks_group):
+            s = [0, 0, 0, 0, 0]
             for i in Blocks_group.sprites():
                 kk = pygame.sprite.collide_mask(Gero, i)
                 if kk:
+                    s[0] += 1
                     if kk[0] == 2 and kk[1] != 39 and kk[1] != 0:
                         self.left = False
+                    else:
+                        s[2] += 1
                     if kk[1] == 39:
                         self.padenie2 = False
-                    elif kk[1] == 0:
+                    elif kk[1] != 39:
+                        s[1] += 1
+                    if kk[1] == 0:
                         self.up = False
-                        print(self.k11)
+                        print(self.k11, self.pryzhok)
                     if pygame.sprite.spritecollide(Gero, Blocks_group, False):
                         print('Yeah', kk)
+            if s[1] == s[0]:
+                self.padenie2 = True
+            if s[2] == s[0]:
+                self.left = True
         else:
             self.up = True
             self.left = True
@@ -163,9 +172,10 @@ blocks_list = []
 Gero = Mario(80, 300)
 for i in range(10):
     blocks_list.append(Blocks(i * 40, 400))
+blocks_list.append(Blocks(0, 320))
 blocks_list.append(Blocks(0, 360))
-for i in range(10):
-    blocks_list.append(Blocks(i * 40, 200))
+for i in range(9):
+    blocks_list.append(Blocks((i + 1) * 40, 200))
 
 # ожидание закрытия окна:
 clock = pygame.time.Clock()
