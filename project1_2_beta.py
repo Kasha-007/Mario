@@ -43,6 +43,7 @@ class Mario(pygame.sprite.Sprite):
         self.k11 = 0
         self.pryzhok = False
         self.up = True
+        self.left = True
         self.sel = False
         self.speed = 1  # Скорость
         self.image = pygame.transform.flip(self.image, True, False)
@@ -54,15 +55,18 @@ class Mario(pygame.sprite.Sprite):
             for i in Blocks_group.sprites():
                 kk = pygame.sprite.collide_mask(Gero, i)
                 if kk:
+                    if kk[0] == 2 and kk[1] != 39 and kk[1] != 0:
+                        self.left = False
                     if kk[1] == 39:
                         self.padenie2 = False
                     elif kk[1] == 0:
                         self.up = False
                         print(self.k11)
                     if pygame.sprite.spritecollide(Gero, Blocks_group, False):
-                        print('Yeeeeeeeeeeah', kk)
+                        print('Yeah', kk)
         else:
             self.up = True
+            self.left = True
             if not self.pryzhok:
                 self.padenie2 = True
         # Если нажали клавишу
@@ -93,7 +97,6 @@ class Mario(pygame.sprite.Sprite):
             if args[0].key == 119 or args[0].key == 273 or args[0].key == 32:
                 # 'w'
                 self.pryzhok = False
-                self.padenie2 = True
             elif args[0].key == 115 or args[0].key == 274:
                 # 's'
                 self.sel = False
@@ -134,7 +137,7 @@ class Mario(pygame.sprite.Sprite):
                 self.napravlenie = 1
             elif self.storon.key == 97 or self.storon.key == 276:
                 # 'a'
-                if self.rect.x - self.speed >= 0:
+                if self.rect.x - self.speed >= 0 and self.left:
                     self.rect.x -= self.speed
                 if self.napravlenie == 1:
                     self.image = pygame.transform.flip(self.image, True, False)
