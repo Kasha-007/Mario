@@ -40,13 +40,12 @@ class Mario(pygame.sprite.Sprite):
         self.storons = []  # Список сторон в которые он идёт
         self.napravlenie = 1
         self.padenie2 = False
-        self.k1 = 1
         self.k11 = 0
         self.pryzhok = False
         self.sel = False
         self.speed = 1  # Скорость
-        self.g = 9.8  # Ускорение вниз
         self.image = pygame.transform.flip(self.image, True, False)
+        self.mask = pygame.mask.from_surface(self.image)
 
     def get_Mario_rect(self):
         return self.rect
@@ -54,17 +53,18 @@ class Mario(pygame.sprite.Sprite):
     # Обновление героя
     def update(self, *args):
         # Если нажали клавишу
+        for i in Blocks_group.sprites():
+            kk = pygame.sprite.collide_mask(Gero, i)
+            if kk:
+                if pygame.sprite.spritecollide(Gero, Blocks_group, False):
+                    print('Yeeeeeeeeeeah', kk)
         if self.pryzhok and self.k11 != 1500:
             self.k11 += 10
-            if self.k11 % 300 == 0:
-                self.k1 += 0
         elif self.k11 == 1500:
             self.k11 = 0
-            self.k1 = 1
             self.pryzhok = False
         elif not self.pryzhok:
             self.k11 = 0
-            self.k1 = 1
         if args[0].type == pygame.KEYDOWN:
             if args[0].key == 119 or args[0].key == 273 or args[0].key == 32:
                 # 'w'
@@ -116,7 +116,7 @@ class Mario(pygame.sprite.Sprite):
     def Moving(self):
         if self.pryzhok:
             # 'w'
-            self.rect.y -= 1 * self.k1
+            self.rect.y -= 1
         if self.sel:
             # 's'
             pass
@@ -128,6 +128,7 @@ class Mario(pygame.sprite.Sprite):
                     self.rect.x += self.speed
                 if self.napravlenie == 0:
                     self.image = pygame.transform.flip(self.image, True, False)
+                    self.mask = pygame.mask.from_surface(self.image)
                 self.napravlenie = 1
             elif self.storon.key == 97 or self.storon.key == 276:
                 # 'a'
@@ -135,6 +136,7 @@ class Mario(pygame.sprite.Sprite):
                     self.rect.x -= self.speed
                 if self.napravlenie == 1:
                     self.image = pygame.transform.flip(self.image, True, False)
+                    self.mask = pygame.mask.from_surface(self.image)
                 self.napravlenie = 0
 
 
@@ -170,9 +172,12 @@ class Blocks(pygame.sprite.Sprite):
 
 
 # Инициализация врагов, героя и блоков, уровень 1
-Gero = Mario(80, 0)
+blocks_list = []
+Gero = Mario(80, 300)
 for i in range(10):
-    Blocks(i * 40, 200)
+    blocks_list.append(Blocks(i * 40, 400))
+for i in range(10):
+    blocks_list.append(Blocks(i * 40, 200))
 
 # ожидание закрытия окна:
 clock = pygame.time.Clock()
