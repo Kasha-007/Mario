@@ -56,21 +56,17 @@ class Mario(pygame.sprite.Sprite):
                 kk = pygame.sprite.collide_mask(Gero, i)
                 if kk:
                     s[0] += 1
-                    if kk[0] == 2 and kk[1] != 39 and kk[1] != 0:
+                    if kk[0] <= 10 and kk[1] != 39 and kk[1] != 0:
                         self.left = False
                     else:
                         s[2] += 1
-                    if kk[1] == 39:
+                    if kk[1] == 39 and kk[0] <= 2:
                         self.padenie2 = False
-                    elif kk[1] != 39:
-                        s[1] += 1
                     if kk[1] == 0:
                         self.up = False
                         print(self.k11, self.pryzhok)
                     if pygame.sprite.spritecollide(Gero, Blocks_group, False):
-                        print('Yeah', kk)
-            if s[1] == s[0]:
-                self.padenie2 = True
+                        print('Yeah', kk, self.mask)
             if s[2] == s[0]:
                 self.left = True
         else:
@@ -84,6 +80,9 @@ class Mario(pygame.sprite.Sprite):
         elif self.k11 == 1500:
             self.k11 = 0
             self.pryzhok = False
+            self.padenie2 = True
+        elif not self.pryzhok and 0 < self.k11 < 1500:
+            self.k11 = 0
             self.padenie2 = True
         elif not self.pryzhok:
             self.k11 = 0
@@ -183,7 +182,7 @@ MYEVENTTYPE = 1
 k = 0
 pygame.time.set_timer(MYEVENTTYPE, 10)
 running = True
-screen.fill((0, 0, 0))
+screen.fill((114, 208, 237))
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -192,7 +191,7 @@ while running:
             k += 10
             Gero.Moving()
         Mario_group.update(event)
-    screen.fill((0, 0, 0))
+    screen.fill((114, 208, 237))
     Mario_group.draw(screen)
     Blocks_group.draw(screen)
     pygame.display.flip()
