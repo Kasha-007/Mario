@@ -39,13 +39,12 @@ class Mario(pygame.sprite.Sprite):
         self.storons = []  # Список сторон в которые он идёт
         self.napravlenie = 1
         self.padenie2 = True
-        self.k11 = 0
         self.pryzhok = False
-        self.up = True
         self.left = True
         self.right = True
         self.sel = False
         self.stoit = False
+        self.k11 = 0
         self.speed = 1  # Скорость
         self.image = pygame.transform.flip(self.image, True, False)
         self.mask = pygame.mask.from_surface(self.image)
@@ -69,21 +68,17 @@ class Mario(pygame.sprite.Sprite):
                     if kk[1] == 39:
                         self.padenie2 = False
                         self.stoit = True
-                    if kk[1] == 0:
-                        self.up = False
-                        print(self.k11, self.pryzhok)
-                    else:
-                        s[1] += 1
-                    if pygame.sprite.spritecollide(Gero, Blocks_group, False):
-                        print('Yeah', kk, self.mask)
-            if s[1] == s[0]:
-                self.up = True
+                    if kk[1] == 0 or 0 < kk[0] < 10 and kk[1] <= 16 and not self.napravlenie or \
+                            39 > kk[0] >= 30 and kk[1] <= 16 and self.napravlenie:
+                        self.pryzhok = False
+                    #     print(self.k11, self.pryzhok)
+                    # if pygame.sprite.spritecollide(Gero, Blocks_group, False):
+                    #     print('Yeah', kk, self.mask)
             if s[2] == s[0]:
                 self.left = True
             if s[3] == s[0]:
                 self.right = True
         else:
-            self.up = True
             self.stoit = False
             self.left = True
             self.right = True
@@ -140,8 +135,7 @@ class Mario(pygame.sprite.Sprite):
     def Moving(self):
         if self.pryzhok:
             # 'w'
-            if self.up:
-                self.rect.y -= 1
+            self.rect.y -= self.speed
         if self.sel:
             # 's'
             pass
@@ -190,6 +184,7 @@ Gero = Mario(80, 300)
 for i in range(10):
     blocks_list.append(Blocks(i * 40, 400))
 blocks_list.append(Blocks(0, 320))
+blocks_list.append(Blocks(200, 320))
 blocks_list.append(Blocks(0, 360))
 blocks_list.append(Blocks(120, 360))
 for i in range(9):
