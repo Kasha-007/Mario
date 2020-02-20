@@ -43,7 +43,9 @@ class Mario(pygame.sprite.Sprite):
         self.pryzhok = False
         self.up = True
         self.left = True
+        self.right = True
         self.sel = False
+        self.stoit = False
         self.speed = 1  # Скорость
         self.image = pygame.transform.flip(self.image, True, False)
         self.mask = pygame.mask.from_surface(self.image)
@@ -56,22 +58,35 @@ class Mario(pygame.sprite.Sprite):
                 kk = pygame.sprite.collide_mask(Gero, i)
                 if kk:
                     s[0] += 1
-                    if kk[0] <= 10 and kk[1] != 39 and kk[1] != 0:
+                    if kk[0] <= 2 and kk[1] != 39 and kk[1] != 0:
                         self.left = False
                     else:
                         s[2] += 1
-                    if kk[1] == 39 and kk[0] <= 2:
+                    if kk[0] >= 37 and kk[1] != 39 and kk[1] != 0:
+                        self.right = False
+                    else:
+                        s[3] += 1
+                    if kk[1] == 39:
                         self.padenie2 = False
+                        self.stoit = True
                     if kk[1] == 0:
                         self.up = False
                         print(self.k11, self.pryzhok)
+                    else:
+                        s[1] += 1
                     if pygame.sprite.spritecollide(Gero, Blocks_group, False):
                         print('Yeah', kk, self.mask)
+            if s[1] == s[0]:
+                self.up = True
             if s[2] == s[0]:
                 self.left = True
+            if s[3] == s[0]:
+                self.right = True
         else:
             self.up = True
+            self.stoit = False
             self.left = True
+            self.right = True
             if not self.pryzhok:
                 self.padenie2 = True
         # Если нажали клавишу
@@ -83,7 +98,8 @@ class Mario(pygame.sprite.Sprite):
             self.padenie2 = True
         elif not self.pryzhok and 0 < self.k11 < 1500:
             self.k11 = 0
-            self.padenie2 = True
+            if not self.stoit:
+                self.padenie2 = True
         elif not self.pryzhok:
             self.k11 = 0
         if args[0].type == pygame.KEYDOWN:
@@ -91,6 +107,7 @@ class Mario(pygame.sprite.Sprite):
                 # 'w'
                 if not self.padenie2:
                     self.pryzhok = True
+                    self.stoit = False
             elif args[0].key == 115 or args[0].key == 274:
                 # 's'
                 self.sel = True
@@ -137,7 +154,7 @@ class Mario(pygame.sprite.Sprite):
             self.storon = self.storons[-1]
             if self.storon.key == 100 or self.storon.key == 275:
                 # 'd'
-                if self.rect.x + 40 + self.speed <= width:
+                if self.rect.x + 40 + self.speed <= width and self.right:
                     self.rect.x += self.speed
                 if self.napravlenie == 0:
                     self.image = pygame.transform.flip(self.image, True, False)
@@ -161,6 +178,7 @@ class Blocks(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.mask = pygame.mask.from_surface(self.image)
 
     def update(self, *args):
         pass
@@ -173,6 +191,7 @@ for i in range(10):
     blocks_list.append(Blocks(i * 40, 400))
 blocks_list.append(Blocks(0, 320))
 blocks_list.append(Blocks(0, 360))
+blocks_list.append(Blocks(120, 360))
 for i in range(9):
     blocks_list.append(Blocks((i + 1) * 40, 200))
 
