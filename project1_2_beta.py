@@ -61,7 +61,7 @@ class Mario(pygame.sprite.Sprite):
                         self.left = False
                     else:
                         s[2] += 1
-                    if kk[0] >= 37 and kk[1] != 39 and kk[1] != 0:
+                    if kk[0] >= 35 and kk[1] != 39 and kk[1] != 0:
                         self.right = False
                     else:
                         s[3] += 1
@@ -85,13 +85,13 @@ class Mario(pygame.sprite.Sprite):
             if not self.pryzhok:
                 self.padenie2 = True
         # Если нажали клавишу
-        if self.pryzhok and self.k11 != 1500:
+        if self.pryzhok and self.k11 != 1200:
             self.k11 += 10
-        elif self.k11 == 1500:
+        elif self.k11 == 1200:
             self.k11 = 0
             self.pryzhok = False
             self.padenie2 = True
-        elif not self.pryzhok and 0 < self.k11 < 1500:
+        elif not self.pryzhok and 0 < self.k11 < 1200:
             self.k11 = 0
             if not self.stoit:
                 self.padenie2 = True
@@ -168,7 +168,7 @@ class Mario(pygame.sprite.Sprite):
 class Blocks(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(Blocks_group, all_sprites)
-        self.image = load_image("pol.png", -1)
+        self.image = load_image("pol.png")
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -179,16 +179,37 @@ class Blocks(pygame.sprite.Sprite):
 
 
 # Инициализация врагов, героя и блоков, уровень 1
-blocks_list = []
-Gero = Mario(80, 300)
-for i in range(10):
-    blocks_list.append(Blocks(i * 40, 400))
-blocks_list.append(Blocks(0, 320))
-blocks_list.append(Blocks(200, 320))
-blocks_list.append(Blocks(0, 360))
-blocks_list.append(Blocks(120, 360))
-for i in range(9):
-    blocks_list.append(Blocks((i + 1) * 40, 200))
+def load_level(filename):
+    filename = "data/" + filename
+    # читаем уровень, убирая символы перевода строки
+    with open(filename, 'r') as mapFile:
+        level_map = [line.strip() for line in mapFile]
+
+    # и подсчитываем максимальную длину
+    max_width = max(map(len, level_map))
+
+    # дополняем каждую строку пустыми клетками ('.')
+    return list(map(lambda x: x.ljust(max_width, '.'), level_map))
+
+
+level = load_level('lvl')
+for i in range(len(level)):
+    for j in range(len(level[i])):
+        if level[i][j] == '.':
+            pass
+        elif level[i][j] == '#':
+            Blocks(j * 40, i * 40)
+        elif level[i][j] == '@':
+            Gero = Mario(j * 40, i * 40)
+# Gero = Mario(80, 300)
+# for i in range(10):
+#     Blocks(i * 40, 400)
+# Blocks(0, 320)
+# Blocks(200, 320)
+# Blocks(0, 360)
+# Blocks(120, 360)
+# for i in range(9):
+#     Blocks((i + 1) * 40, 200)
 
 # ожидание закрытия окна:
 clock = pygame.time.Clock()
