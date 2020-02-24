@@ -81,8 +81,6 @@ class Mario(pygame.sprite.Sprite):
                     if kk[1] == 0 or 0 < kk[0] < 10 and kk[1] <= 16 and not self.napravlenie or \
                             39 > kk[0] >= 30 and kk[1] <= 16 and self.napravlenie:
                         self.pryzhok = False
-                    # if pygame.sprite.spritecollide(Gero, Blocks_group, False):
-                    #     print('Yeah', kk, kk2)
             if s[2] == s[0]:
                 self.left = True
             if s[3] == s[0]:
