@@ -182,6 +182,14 @@ class Blocks(pygame.sprite.Sprite):
         pass
 
 
+class Kirpichi(Blocks):
+    def __init__(self, x, y, image_name='kir-i'):
+        super().__init__(x, y, image_name='kir-i')
+
+    def update(self, *args):
+        pass
+
+
 # Инициализация врагов, героя и блоков, уровень 1
 def load_level(filename):
     filename = "data/" + filename
@@ -220,7 +228,7 @@ for i in range(len(level)):
         elif level[i][j] == '#':
             Blocks(j * 40, i * 40)
         elif level[i][j] == '$':
-            Blocks(j * 40, i * 40, 'kir-i')
+            Kirpichi(j * 40, i * 40)
         elif level[i][j] == '?':
             Blocks(j * 40, i * 40, '?')
         elif level[i][j] == '@':
