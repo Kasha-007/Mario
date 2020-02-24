@@ -48,6 +48,7 @@ class Mario(pygame.sprite.Sprite):
         self.speed = 1  # Скорость
         self.image = pygame.transform.flip(self.image, True, False)
         self.mask = pygame.mask.from_surface(self.image)
+        print(self.mask)
 
     # Обновление героя
     def update(self, *args):
@@ -66,7 +67,7 @@ class Mario(pygame.sprite.Sprite):
                         self.right = False
                     else:
                         s[3] += 1
-                    if kk[1] == 39 and (kk[0] == 0 and kk2[0] != 39):
+                    if kk[1] == 39 and kk2[0] != 39:
                         self.padenie2 = False
                         self.stoit = True
                     if kk[1] == 0 or 0 < kk[0] < 10 and kk[1] <= 16 and not self.napravlenie or \
@@ -164,11 +165,14 @@ class Mario(pygame.sprite.Sprite):
                 self.napravlenie = 0
 
 
+list_of_blocks = {'pol': "pol.png", 'kir-i': "kirpichiki.png", "?": 'blok_zagadka.png'}
+
+
 # Blocks
 class Blocks(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, image_name="pol"):
         super().__init__(Blocks_group, all_sprites)
-        self.image = load_image("pol.png")
+        self.image = load_image(list_of_blocks[image_name])
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -210,16 +214,17 @@ def load_level(filename):
 
 level = load_level('lvl')
 for i in range(len(level)):
-   for j in range(len(level[i])):
-       if level[i][j] == '.':
-           pass
-       elif level[i][j] == '#':
-           Blocks(j * 40, i * 40)
-       elif level[i][j] == '$':
-           Blocks(j * 40, i * 40)
-       elif level[i][j] == '@':
-           Gero = Mario(j * 40, i * 40)
-
+    for j in range(len(level[i])):
+        if level[i][j] == '.':
+            pass
+        elif level[i][j] == '#':
+            Blocks(j * 40, i * 40)
+        elif level[i][j] == '$':
+            Blocks(j * 40, i * 40, 'kir-i')
+        elif level[i][j] == '?':
+            Blocks(j * 40, i * 40, '?')
+        elif level[i][j] == '@':
+            Gero = Mario(j * 40, i * 40)
 
 # Gero = Mario(80, 300)
 # for i in range(10):
