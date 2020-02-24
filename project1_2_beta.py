@@ -1,5 +1,6 @@
 import os
 import pygame
+import random
 
 
 def load_image(name, colorkey=None):
@@ -38,6 +39,7 @@ class Mario(pygame.sprite.Sprite):
         self.rect.y = y
         self.storons = []  # Список сторон в которые он идёт
         self.napravlenie = 1
+        self.rost = 1
         self.padenie2 = True
         self.pryzhok = False
         self.left = True
@@ -49,6 +51,12 @@ class Mario(pygame.sprite.Sprite):
         self.image = pygame.transform.flip(self.image, True, False)
         self.mask = pygame.mask.from_surface(self.image)
         print(self.mask)
+
+    def get_rost(self):
+        return self.rost
+
+    def set_rost(self, r):
+        self.rost = r
 
     # Обновление героя
     def update(self, *args):
@@ -165,7 +173,8 @@ class Mario(pygame.sprite.Sprite):
                 self.napravlenie = 0
 
 
-list_of_blocks = {'pol': "pol.png", 'kir-i': "kirpichiki.png", "?": 'blok_zagadka.png'}
+list_of_blocks = {'pol': "pol.png", 'kir-i': "kirpichiki.png",
+                  "?": 'blok_zagadka.png', '-?-': 'blok_zagadka_bez_zagadki.png'}
 
 
 # Blocks
@@ -183,11 +192,90 @@ class Blocks(pygame.sprite.Sprite):
 
 
 class Kirpichi(Blocks):
-    def __init__(self, x, y, image_name='kir-i'):
+    def __init__(self, x, y, monetochniy=False):
         super().__init__(x, y, image_name='kir-i')
+        self.monetochniy = monetochniy
+        self.monetki = random.choice(range(3, 8)) if monetochniy else 0
 
     def update(self, *args):
-        pass
+        kk = pygame.sprite.collide_mask(self, Gero)
+        if kk:
+            if kk[1] == 39 and kk[0] != 0 and kk[0] != 39:
+                if self.monetochniy:
+                    if self.monetki >= 1:
+                        self.monetki -= 1
+                        Monetka(self.rect.x, self.rect.y - 40)
+                    elif self.monetki == 1:
+                        self.monetki -= 1
+                        Monetka(self.rect.x, self.rect.y - 40)
+                else:
+                    if Gero.get_rost() != 1:
+                        self.kill()
+
+
+class Block_zagadka(Blocks):
+    def __init__(self, x, y, monetochniy=False):
+        super().__init__(x, y, image_name='?')
+        self.monetochniy = monetochniy
+        self.monetki = 1 if monetochniy else 0
+        self.sost = 1
+
+    def update(self, *args):
+        if self.sost:
+            kk = pygame.sprite.collide_mask(self, Gero)
+            if kk:
+                if kk[1] == 39 and kk[0] != 0 and kk[0] != 39:
+                    if self.monetochniy:
+                        if self.monetki == 1:
+                            self.monetki -= 1
+                            Monetka(self.rect.x, self.rect.y - 40)
+                            self.sost = 0
+                            self.image = load_image(list_of_blocks['-?-'])
+                    else:
+                        if Gero.get_rost() == 1:
+                            Grib(self.rect.x, self.rect.y - 40)
+                            self.sost = 0
+                            self.image = load_image(list_of_blocks['-?-'])
+                        else:
+                            # Flower(self.rect.x, self.rect.y - 40)
+                            self.sost = 0
+                            self.image = load_image(list_of_blocks['-?-'])
+
+
+class Monetka(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.image = load_image('monetka.png', -1)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.k = 0
+
+    def update(self, *args):
+        self.k += 10
+        if self.k % 80 == 0:
+            self.rect.y -= 1
+        if self.k == 2000:
+            self.kill()
+
+
+class Grib(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.image = load_image('Gribochek.png', -1)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.k = 0
+
+    def update(self, *args):
+        self.k += 10
+        if self.k == 20000:
+            self.kill()
+        elif pygame.sprite.spritecollide(self, Mario_group, False):
+            self.kill()
+            if Gero.get_rost() == 1:
+                Gero.set_rost(2)
 
 
 # Инициализация врагов, героя и блоков, уровень 1
@@ -227,22 +315,14 @@ for i in range(len(level)):
             pass
         elif level[i][j] == '#':
             Blocks(j * 40, i * 40)
-        elif level[i][j] == '$':
+        elif level[i][j] == '=':
             Kirpichi(j * 40, i * 40)
+        elif level[i][j] == '$':
+            Kirpichi(j * 40, i * 40, True)
         elif level[i][j] == '?':
-            Blocks(j * 40, i * 40, '?')
+            Block_zagadka(j * 40, i * 40)
         elif level[i][j] == '@':
             Gero = Mario(j * 40, i * 40)
-
-# Gero = Mario(80, 300)
-# for i in range(10):
-#     Blocks(i * 40, 400)
-# Blocks(0, 320)
-# Blocks(200, 320)
-# Blocks(0, 360)
-# Blocks(120, 360)
-# for i in range(9):
-#     Blocks((i + 1) * 40, 200)
 
 # ожидание закрытия окна:
 clock = pygame.time.Clock()
@@ -259,9 +339,10 @@ while running:
             k += 10
             Gero.Moving()
         Mario_group.update(event)
+        all_sprites.update(event)
     screen.fill((114, 208, 237))
     Mario_group.draw(screen)
-    Blocks_group.draw(screen)
+    all_sprites.draw(screen)
     pygame.display.flip()
     clock.tick(30)
 # завершение работы:
