@@ -17,8 +17,8 @@ def load_image(name, colorkey=None):
 # инициализация Pygame:
 pygame.init()
 # размеры окна:
-mashtab = 1
-size = width, height = 640 * mashtab, 480 * mashtab
+mashtab = 1 * 7 / 6
+size = width, height = int(640 * mashtab), int(480 * mashtab)
 # screen — холст, на котором нужно рисовать:
 screen = pygame.display.set_mode(size)
 
@@ -32,7 +32,7 @@ Blocks_group = pygame.sprite.Group()
 class Mario(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(Mario_group)
-        self.image = load_image("Mario_mini.png", -1)
+        self.image = load_image("Mario_mini_40kh40.png", -1)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -55,25 +55,25 @@ class Mario(pygame.sprite.Sprite):
             s = [0, 0, 0, 0, 0]
             for i in Blocks_group.sprites():
                 kk = pygame.sprite.collide_mask(Gero, i)
+                kk2 = pygame.sprite.collide_mask(i, Gero)
                 if kk:
                     s[0] += 1
                     if kk[0] <= 2 and kk[1] != 39 and kk[1] != 0:
                         self.left = False
                     else:
                         s[2] += 1
-                    if kk[0] >= 35 and kk[1] != 39 and kk[1] != 0:
+                    if kk[0] >= 37 and kk[1] != 39 and kk[1] != 0:
                         self.right = False
                     else:
                         s[3] += 1
-                    if kk[1] == 39:
+                    if kk[1] == 39 and (kk[0] == 0 and kk2[0] != 39):
                         self.padenie2 = False
                         self.stoit = True
                     if kk[1] == 0 or 0 < kk[0] < 10 and kk[1] <= 16 and not self.napravlenie or \
                             39 > kk[0] >= 30 and kk[1] <= 16 and self.napravlenie:
                         self.pryzhok = False
-                    #     print(self.k11, self.pryzhok)
                     # if pygame.sprite.spritecollide(Gero, Blocks_group, False):
-                    #     print('Yeah', kk, self.mask)
+                    #     print('Yeah', kk, kk2)
             if s[2] == s[0]:
                 self.left = True
             if s[3] == s[0]:
@@ -85,13 +85,13 @@ class Mario(pygame.sprite.Sprite):
             if not self.pryzhok:
                 self.padenie2 = True
         # Если нажали клавишу
-        if self.pryzhok and self.k11 != 1200:
+        if self.pryzhok and self.k11 != 1700:
             self.k11 += 10
-        elif self.k11 == 1200:
+        elif self.k11 == 1700:
             self.k11 = 0
             self.pryzhok = False
             self.padenie2 = True
-        elif not self.pryzhok and 0 < self.k11 < 1200:
+        elif not self.pryzhok and 0 < self.k11 < 1700:
             self.k11 = 0
             if not self.stoit:
                 self.padenie2 = True
@@ -192,15 +192,35 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
+# level = load_level('lvl1.txt')
+# for i in range(len(level)):
+#     for j in range(len(level[i])):
+#         if level[i][j] == '.':
+#             pass
+#         elif level[i][j] == '#':
+#             Blocks(j * 40, i * 40)
+#         elif level[i][j] == '/':
+#             Blocks(j * 40, i * 40)
+#         elif level[i][j] == '?':
+#             Blocks(j * 40, i * 40)
+#         elif level[i][j] == '&':
+#             Blocks(j * 40, i * 40)
+#         elif level[i][j] == '7':
+#             Gero = Mario(j * 40, i * 40)
+
 level = load_level('lvl')
 for i in range(len(level)):
-    for j in range(len(level[i])):
-        if level[i][j] == '.':
-            pass
-        elif level[i][j] == '#':
-            Blocks(j * 40, i * 40)
-        elif level[i][j] == '@':
-            Gero = Mario(j * 40, i * 40)
+   for j in range(len(level[i])):
+       if level[i][j] == '.':
+           pass
+       elif level[i][j] == '#':
+           Blocks(j * 40, i * 40)
+       elif level[i][j] == '$':
+           Blocks(j * 40, i * 40)
+       elif level[i][j] == '@':
+           Gero = Mario(j * 40, i * 40)
+
+
 # Gero = Mario(80, 300)
 # for i in range(10):
 #     Blocks(i * 40, 400)
