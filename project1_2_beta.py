@@ -29,10 +29,25 @@ Mario_group = pygame.sprite.Group()
 Blocks_group = pygame.sprite.Group()
 
 
+class Camera:
+    # зададим начальный сдвиг камеры
+    def __init__(self):
+        self.dx = 0
+        self.dy = 0
+
+    # сдвинуть объект obj на смещение камеры
+    def apply(self, obj):
+        obj.rect.x += self.dx
+
+    # позиционировать камеру на объекте target
+    def update(self, target):
+        self.dx = -(target.rect.x + target.rect.w // 2 - width // 2)
+
+
 # Gero
 class Mario(pygame.sprite.Sprite):
     def __init__(self, x, y):
-        super().__init__(Mario_group)
+        super().__init__(Mario_group, all_sprites)
         self.image = load_image("Mario_mini_40kh40.png", -1)
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -356,6 +371,7 @@ for i in range(len(level)):
             Gero = Mario(j * 40, i * 40)
 
 # ожидание закрытия окна:
+camera = Camera()
 clock = pygame.time.Clock()
 MYEVENTTYPE = 1
 k = 0
@@ -369,12 +385,16 @@ while running:
         if event.type == MYEVENTTYPE:
             k += 10
             Gero.Moving()
-        Mario_group.update(event)
+        # изменяем ракурс камеры
+        camera.update(Gero)
+        # обновляем положение всех спрайтов
+        for sprite in all_sprites:
+            camera.apply(sprite)
         all_sprites.update(event)
     screen.fill((114, 208, 237))
     Mario_group.draw(screen)
     all_sprites.draw(screen)
     pygame.display.flip()
-    clock.tick(30)
+    clock.tick(90)
 # завершение работы:
 pygame.quit()
