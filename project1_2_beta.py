@@ -50,13 +50,24 @@ class Mario(pygame.sprite.Sprite):
         self.speed = 1  # Скорость
         self.image = pygame.transform.flip(self.image, True, False)
         self.mask = pygame.mask.from_surface(self.image)
-        print(self.mask)
+        self.slovar_of_rost = {1: 'mario_mini_40kh40.png',
+                               2: 'Mario.png', 3: 'Mario_pod_gribami.png'}
 
     def get_rost(self):
         return self.rost
 
     def set_rost(self, r):
+        x = self.rect.x
+        y = self.rect.y
         self.rost = r
+        self.image = load_image(self.slovar_of_rost[self.rost], -1)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y - 40
+        if self.napravlenie == 1:
+            self.image = pygame.transform.flip(self.image, True, False)
+        self.mask = pygame.mask.from_surface(self.image)
+        print(self.mask)
 
     # Обновление героя
     def update(self, *args):
@@ -67,20 +78,38 @@ class Mario(pygame.sprite.Sprite):
                 kk2 = pygame.sprite.collide_mask(i, Gero)
                 if kk:
                     s[0] += 1
-                    if kk[0] <= 2 and kk[1] != 39 and kk[1] != 0:
-                        self.left = False
-                    else:
-                        s[2] += 1
-                    if kk[0] >= 37 and kk[1] != 39 and kk[1] != 0:
-                        self.right = False
-                    else:
-                        s[3] += 1
-                    if kk[1] == 39 and kk2[0] != 39:
-                        self.padenie2 = False
-                        self.stoit = True
-                    if kk[1] == 0 or 0 < kk[0] < 10 and kk[1] <= 16 and not self.napravlenie or \
-                            39 > kk[0] >= 30 and kk[1] <= 16 and self.napravlenie:
-                        self.pryzhok = False
+                    if self.rost == 1:
+                        if kk[0] <= 2 and kk[1] != 39 and kk[1] != 0:
+                            self.left = False
+                        else:
+                            s[2] += 1
+                        if kk[0] >= 37 and kk[1] != 39 and kk[1] != 0:
+                            self.right = False
+                        else:
+                            s[3] += 1
+                        if kk[1] == 39 and kk2[0] != 39:
+                            self.padenie2 = False
+                            self.stoit = True
+                        if kk[1] == 0 or 0 < kk[0] < 10 and kk[1] <= 16 and not self.napravlenie or \
+                                39 > kk[0] >= 30 and kk[1] <= 16 and self.napravlenie:
+                            self.pryzhok = False
+                    elif self.rost == 2 or self.rost == 3:
+                        if kk[1] > 38:
+                            print(kk, kk2)
+                        if kk[0] <= 2 and kk[1] != 79 and kk[1] != 0:
+                            self.left = False
+                        else:
+                            s[2] += 1
+                        if kk[0] >= 37 and kk[1] != 79 and kk[1] != 0:
+                            self.right = False
+                        else:
+                            s[3] += 1
+                        if kk[1] == 79 and kk2[0] != 39:
+                            self.padenie2 = False
+                            self.stoit = True
+                        if kk[1] == 0 or 0 < kk[0] < 10 and kk[1] <= 16 and not self.napravlenie or \
+                                39 > kk[0] >= 30 and kk[1] <= 16 and self.napravlenie:
+                            self.pryzhok = False
             if s[2] == s[0]:
                 self.left = True
             if s[3] == s[0]:
@@ -155,7 +184,7 @@ class Mario(pygame.sprite.Sprite):
             self.storon = self.storons[-1]
             if self.storon.key == 100 or self.storon.key == 275:
                 # 'd'
-                if self.rect.x + 40 + self.speed <= width and self.right:
+                if self.rect.x + self.rect[3] + self.speed <= width and self.right:
                     self.rect.x += self.speed
                 if self.napravlenie == 0:
                     self.image = pygame.transform.flip(self.image, True, False)
@@ -198,21 +227,22 @@ class Kirpichi(Blocks):
     def update(self, *args):
         kk = pygame.sprite.collide_mask(self, Gero)
         if kk:
-            if kk[1] == 39 and kk[0] != 0 and kk[0] != 39:
+            if kk[1] == 39 and kk[0] >= 2 and kk[0] <= 37:
                 if self.monetochniy:
-                    if self.monetki >= 1:
+                    if self.monetki > 1:
                         self.monetki -= 1
                         Monetka(self.rect.x, self.rect.y - 40)
                     elif self.monetki == 1:
                         self.monetki -= 1
                         Monetka(self.rect.x, self.rect.y - 40)
+                        self.image = load_image(list_of_blocks['-?-'])
                 else:
                     if Gero.get_rost() != 1:
                         self.kill()
 
 
 class Block_zagadka(Blocks):
-    def __init__(self, x, y, monetochniy=False):
+    def __init__(self, x, y, monetochniy=True):
         super().__init__(x, y, image_name='?')
         self.monetochniy = monetochniy
         self.monetki = 1 if monetochniy else 0
@@ -235,7 +265,7 @@ class Block_zagadka(Blocks):
                             self.sost = 0
                             self.image = load_image(list_of_blocks['-?-'])
                         else:
-                            # Flower(self.rect.x, self.rect.y - 40)
+                            Flower(self.rect.x, self.rect.y - 40)
                             self.sost = 0
                             self.image = load_image(list_of_blocks['-?-'])
 
@@ -267,13 +297,28 @@ class Grib(pygame.sprite.Sprite):
         self.k = 0
 
     def update(self, *args):
-        self.k += 10
-        if self.k == 20000:
-            self.kill()
-        elif pygame.sprite.spritecollide(self, Mario_group, False):
-            self.kill()
+        if pygame.sprite.spritecollide(self, Mario_group, False):
             if Gero.get_rost() == 1:
                 Gero.set_rost(2)
+            self.kill()
+
+
+class Flower(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.image = load_image('Tsvetochek.png', -1)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.k = 0
+
+    def update(self, *args):
+        if pygame.sprite.spritecollide(self, Mario_group, False):
+            if Gero.get_rost() == 2:
+                Gero.set_rost(3)
+            elif Gero.get_rost() == 1:
+                Gero.set_rost(2)
+            self.kill()
 
 
 # Инициализация врагов, героя и блоков, уровень 1
@@ -290,23 +335,9 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
-# level = load_level('lvl1.txt')
-# for i in range(len(level)):
-#     for j in range(len(level[i])):
-#         if level[i][j] == '.':
-#             pass
-#         elif level[i][j] == '#':
-#             Blocks(j * 40, i * 40)
-#         elif level[i][j] == '/':
-#             Blocks(j * 40, i * 40)
-#         elif level[i][j] == '?':
-#             Blocks(j * 40, i * 40)
-#         elif level[i][j] == '&':
-#             Blocks(j * 40, i * 40)
-#         elif level[i][j] == '7':
-#             Gero = Mario(j * 40, i * 40)
+level = load_level('lvl1.txt')
 
-level = load_level('lvl')
+# level = load_level('lvl')
 for i in range(len(level)):
     for j in range(len(level[i])):
         if level[i][j] == '.':
@@ -319,6 +350,8 @@ for i in range(len(level)):
             Kirpichi(j * 40, i * 40, True)
         elif level[i][j] == '?':
             Block_zagadka(j * 40, i * 40)
+        elif level[i][j] == 'G':
+            Block_zagadka(j * 40, i * 40, False)
         elif level[i][j] == '@':
             Gero = Mario(j * 40, i * 40)
 
