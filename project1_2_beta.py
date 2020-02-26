@@ -19,7 +19,7 @@ def load_image(name, colorkey=None):
 pygame.init()
 # размеры окна:
 mashtab = 1 * 7 / 6
-size = width, height = int(640 * mashtab), int(480 * mashtab)
+size = width, height = int(800 * mashtab), int(480 * mashtab)
 # screen — холст, на котором нужно рисовать:
 screen = pygame.display.set_mode(size)
 
@@ -27,13 +27,13 @@ screen = pygame.display.set_mode(size)
 all_sprites = pygame.sprite.Group()
 Mario_group = pygame.sprite.Group()
 Blocks_group = pygame.sprite.Group()
+Enemy_group = pygame.sprite.Group()
 
 
 class Camera:
     # зададим начальный сдвиг камеры
     def __init__(self):
         self.dx = 0
-        self.dy = 0
 
     # сдвинуть объект obj на смещение камеры
     def apply(self, obj):
@@ -63,10 +63,20 @@ class Mario(pygame.sprite.Sprite):
         self.stoit = False
         self.k11 = 0
         self.speed = 1  # Скорость
+        self.neuz = 0
         self.image = pygame.transform.flip(self.image, True, False)
         self.mask = pygame.mask.from_surface(self.image)
         self.slovar_of_rost = {1: 'mario_mini_40kh40.png',
                                2: 'Mario.png', 3: 'Mario_pod_gribami.png'}
+
+    def set_neuz(self, x):
+        self.neuz = x
+
+    def get_padenie(self):
+        return self.padenie2
+
+    def get_neuz(self):
+        return self.neuz
 
     def get_rost(self):
         return self.rost
@@ -74,18 +84,20 @@ class Mario(pygame.sprite.Sprite):
     def set_rost(self, r):
         x = self.rect.x
         y = self.rect.y
+        k = 40 if self.rost == 1 else 0
         self.rost = r
         self.image = load_image(self.slovar_of_rost[self.rost], -1)
         self.rect = self.image.get_rect()
         self.rect.x = x
-        self.rect.y = y - 40
+        self.rect.y = y - k
         if self.napravlenie == 1:
             self.image = pygame.transform.flip(self.image, True, False)
         self.mask = pygame.mask.from_surface(self.image)
-        print(self.mask)
 
     # Обновление героя
     def update(self, *args):
+        if self.neuz != 0:
+            self.neuz -= 10
         if pygame.sprite.spritecollideany(self, Blocks_group):
             s = [0, 0, 0, 0, 0]
             for i in Blocks_group.sprites():
@@ -102,15 +114,13 @@ class Mario(pygame.sprite.Sprite):
                             self.right = False
                         else:
                             s[3] += 1
-                        if kk[1] == 39 and kk2[0] != 39:
+                        if kk[1] == 39 and kk2[0] != 39 and not (kk[1] == 39 and kk2[0] == 0 and kk[0] == 39):
                             self.padenie2 = False
                             self.stoit = True
                         if kk[1] == 0 or 0 < kk[0] < 10 and kk[1] <= 16 and not self.napravlenie or \
                                 39 > kk[0] >= 30 and kk[1] <= 16 and self.napravlenie:
                             self.pryzhok = False
                     elif self.rost == 2 or self.rost == 3:
-                        if kk[1] > 38:
-                            print(kk, kk2)
                         if kk[0] <= 2 and kk[1] != 79 and kk[1] != 0:
                             self.left = False
                         else:
@@ -215,8 +225,69 @@ class Mario(pygame.sprite.Sprite):
                 self.napravlenie = 0
 
 
+class Owl(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(Enemy_group, all_sprites)
+        self.image = load_image("sova.png", -1)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.padenie2 = True
+        self.left = True
+        self.right = False
+        self.speed = 1  # Скорость
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def update(self, *args):
+        if self.rect.y >= height:
+            self.kill()
+        s = [0, 0, 0, 0, 0]
+        bk = pygame.sprite.spritecollide(self, Blocks_group, False)
+        sk = pygame.sprite.spritecollide(self, Enemy_group, False)
+        kk = sk + bk
+        for i in kk:
+            kk = pygame.sprite.collide_mask(self, i)
+            if kk:
+                s[0] += 1
+                if kk[0] <= 2 and kk[1] != 39 and kk[1] != 0:
+                    self.left = False
+                    self.right = True
+                else:
+                    s[2] += 1
+                if kk[0] >= 37 and kk[1] != 39 and kk[1] != 0:
+                    self.right = False
+                    self.left = True
+                if kk[1] == 39:
+                    self.padenie2 = False
+        if s[0] == s[4]:
+            self.padenie2 = True
+        if pygame.sprite.spritecollide(self, Mario_group, False):
+            kk = pygame.sprite.collide_mask(self, Gero)
+            if kk:
+                if kk[1] <= 15 and Gero.get_padenie():
+                    if not Gero.get_neuz():
+                        self.kill()
+                else:
+                    if Gero.get_rost() == 1:
+                        if not Gero.get_neuz():
+                            Gero.kill()
+                    else:
+                        Gero.set_rost(1)
+                        Gero.set_neuz(1000)
+
+    def Moving(self):
+        if self.padenie2:
+            self.rect.y += 1
+        if self.right:
+            self.rect.x += 1
+        if self.left:
+            self.rect.x -= 1
+
+
 list_of_blocks = {'pol': "pol.png", 'kir-i': "kirpichiki.png",
-                  "?": 'blok_zagadka.png', '-?-': 'blok_zagadka_bez_zagadki.png'}
+                  "?": 'blok_zagadka.png', '-?-': 'blok_zagadka_bez_zagadki.png',
+                  'blok': 'blok.png', 'T1': 'Truba1.png', 'T2': 'Truba2.png',
+                  '[': 'Truba3.png', ']': 'Truba4.png'}
 
 
 # Blocks
@@ -224,6 +295,19 @@ class Blocks(pygame.sprite.Sprite):
     def __init__(self, x, y, image_name="pol"):
         super().__init__(Blocks_group, all_sprites)
         self.image = load_image(list_of_blocks[image_name])
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def update(self, *args):
+        pass
+
+
+class Truba(pygame.sprite.Sprite):
+    def __init__(self, x, y, image_name):
+        super().__init__(Blocks_group, all_sprites)
+        self.image = load_image(list_of_blocks[image_name], (255, 255, 255))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -350,9 +434,9 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
-level = load_level('lvl1.txt')
+# level = load_level('lvl1.txt')
 
-# level = load_level('lvl')
+level = load_level('lvl')
 for i in range(len(level)):
     for j in range(len(level[i])):
         if level[i][j] == '.':
@@ -367,8 +451,18 @@ for i in range(len(level)):
             Block_zagadka(j * 40, i * 40)
         elif level[i][j] == 'G':
             Block_zagadka(j * 40, i * 40, False)
+        elif level[i][j] == '\\':
+            Truba(j * 40, i * 40, 'T1')
+        elif level[i][j] == '/':
+            Truba(j * 40, i * 40, 'T2')
+        elif level[i][j] == '[':
+            Truba(j * 40, i * 40, '[')
+        elif level[i][j] == ']':
+            Truba(j * 40, i * 40, ']')
         elif level[i][j] == '@':
             Gero = Mario(j * 40, i * 40)
+        elif level[i][j] == '-':
+            Owl(j * 40, i * 40)
 
 # ожидание закрытия окна:
 camera = Camera()
@@ -378,13 +472,15 @@ k = 0
 pygame.time.set_timer(MYEVENTTYPE, 10)
 running = True
 screen.fill((114, 208, 237))
-while running:
+while running and Gero.alive():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == MYEVENTTYPE:
             k += 10
             Gero.Moving()
+            for j in Enemy_group:
+                j.Moving()
         # изменяем ракурс камеры
         camera.update(Gero)
         # обновляем положение всех спрайтов
@@ -397,4 +493,6 @@ while running:
     pygame.display.flip()
     clock.tick(90)
 # завершение работы:
+if not Gero.alive():
+    print('You Died')
 pygame.quit()
