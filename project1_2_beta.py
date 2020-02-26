@@ -22,6 +22,7 @@ mashtab = 1 * 7 / 6
 size = width, height = int(800 * mashtab), int(480 * mashtab)
 # screen — холст, на котором нужно рисовать:
 screen = pygame.display.set_mode(size)
+true_over = False
 
 # Groups
 all_sprites = pygame.sprite.Group()
@@ -420,6 +421,42 @@ class Flower(pygame.sprite.Sprite):
             self.kill()
 
 
+class Game_over(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__(Over_group)
+        self.image = load_image('Game_over.png')
+        self.image = pygame.transform.scale(self.image, (width, height))
+        self.rect = self.image.get_rect()
+
+    def update(self, *args):
+        pass
+
+
+class You_win(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__(Over_group)
+        self.image = load_image('You_win.png')
+        self.image = pygame.transform.scale(self.image, (width, height))
+        self.rect = self.image.get_rect()
+
+    def update(self, *args):
+        pass
+
+
+class Castle(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.image = load_image('zamok.png', -1)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self, *args):
+        global true_over
+        if pygame.sprite.spritecollide(self, Mario_group, False):
+            true_over = True
+
+
 # Инициализация врагов, героя и блоков, уровень 1
 def load_level(filename):
     filename = "data/" + filename
@@ -434,9 +471,9 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
-# level = load_level('lvl1.txt')
+level = load_level('lvl1_2.txt')
 
-level = load_level('lvl')
+# level = load_level('lvl')
 for i in range(len(level)):
     for j in range(len(level[i])):
         if level[i][j] == '.':
@@ -447,6 +484,10 @@ for i in range(len(level)):
             Kirpichi(j * 40, i * 40)
         elif level[i][j] == '$':
             Kirpichi(j * 40, i * 40, True)
+        elif level[i][j] == 'B':
+            Blocks(j * 40, i * 40, 'blok')
+        elif level[i][j] == 'Z':
+            Castle(j * 40, i * 40)
         elif level[i][j] == '?':
             Block_zagadka(j * 40, i * 40)
         elif level[i][j] == 'G':
@@ -472,10 +513,13 @@ k = 0
 pygame.time.set_timer(MYEVENTTYPE, 10)
 running = True
 screen.fill((114, 208, 237))
-while running and Gero.alive():
+while running and not true_over:
+    if not Gero.alive():
+        true_over = True
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+            Gero.kill()
         if event.type == MYEVENTTYPE:
             k += 10
             Gero.Moving()
@@ -492,7 +536,14 @@ while running and Gero.alive():
     all_sprites.draw(screen)
     pygame.display.flip()
     clock.tick(90)
+Over_group = pygame.sprite.Group()
+Over = Game_over() if not Gero.alive() else You_win()
 # завершение работы:
-if not Gero.alive():
-    print('You Died')
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    Over.update()
+    Over_group.draw(screen)
+    pygame.display.flip()
 pygame.quit()
